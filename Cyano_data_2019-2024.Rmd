@@ -1,0 +1,177 @@
+## Data Used
+
+Using historical cyanotoxin data from nwtoxicalgae.org/Data.aspx between 2019-2024. DOH guidance changed in 2021 so that may have influenced number of samples submitted since then. 
+
+```{r}
+# Take a look at data from 2019 (all data from subsequent years looks the same)
+library(tidyverse)
+head(All_toxin_data_2019)
+```
+
+This data describes all cyanotoxin samples processed by King County Environmental Lab as part of the Freshwater Algae Control Program housed in the Department of Ecology. The program is based on Department of Health's recreational guidance values for 4 cyanotoxins. Each data point has a county, sampling location (lake), sample number, cyanotoxin tested, toxin concentration, and site ID, among other identifying characteristics. 
+
+
+# Data Cleaning/Wrangling
+
+I want to look at a few things:
+1. The length of the HABs season based on exceedances above the state thresholds (based on tiered system since 2021).
+2. The number of toxin-specific exceedances within each data set.
+3. How the above change year-to-year.
+4. How this looks with climate data (like with surface temperatures across Washington?)
+
+```{r}
+# Filter out all the <MDL values from dataset
+library(dplyr)
+toxins_2019_sub <- filter(All_toxin_data_2019, Toxin_Concentration_ppb != '<MDL')
+toxins_2020_sub <- filter(All_toxin_data_2020, Toxin_Concentration_ppb != '<MDL')
+toxins_2021_sub <- filter(All_toxin_data_2021, Toxin_Concentration_ppb != '<MDL')
+toxins_2022_sub <- filter(All_toxin_data_2022, Toxin_Concentration_ppb != '<MDL')
+toxins_2023_sub <- filter(All_toxin_data_2023, Toxin_Concentration_ppb != '<MDL')
+toxins_2024_sub <- filter(All_toxin_data_2024, Toxin_Concentration_ppb != '<MDL')
+```
+
+# Combine above tibbles to create one for all years
+```{r}
+# First need to make sure all tibbles have the same number of columns (13)
+toxins_2020_sub <- toxins_2020_sub[1:(length(toxins_2020_sub)-1)]
+toxins_2021_sub <- toxins_2021_sub[1:(length(toxins_2021_sub)-3)]
+toxins_2022_sub <- toxins_2022_sub[1:(length(toxins_2022_sub)-1)]
+toxins_2023_sub <- toxins_2023_sub[1:(length(toxins_2023_sub)-2)]
+toxins_2024_sub <- toxins_2024_sub[1:(length(toxins_2024_sub)-2)]
+```
+
+```{r}
+# Remformat dates for each tibble above
+toxins_2019_sub$CollectDate <- mdy(toxins_2019_sub$CollectDate)
+toxins_2020_sub$CollectDate <- mdy(toxins_2020_sub$CollectDate)
+toxins_2021_sub$CollectDate <- mdy(toxins_2021_sub$CollectDate)
+toxins_2022_sub$CollectDate <- mdy(toxins_2022_sub$CollectDate)
+toxins_2023_sub$CollectDate <- mdy(toxins_2023_sub$CollectDate)
+toxins_2024_sub$CollectDate <- mdy(toxins_2024_sub$CollectDate)
+```
+
+```{r}
+# Add column with year only to "_alltoxins" tibbles
+toxins_2019_sub <- mutate(toxins_2019_sub, 
+                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+toxins_2020_sub <- mutate(toxins_2020_sub, 
+                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+toxins_2021_sub <- mutate(toxins_2021_sub, 
+                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+toxins_2022_sub <- mutate(toxins_2022_sub, 
+                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+toxins_2023_sub <- mutate(toxins_2023_sub, 
+                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+toxins_2024_sub <- mutate(toxins_2024_sub, 
+                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+```
+
+```{r}
+# Add column with year only to "_alltoxins" tibbles
+toxins_2019_sub <- mutate(toxins_2019_sub, CollectDate = as.Date(CollectDate), 
+                          year = year(CollectDate))
+toxins_2020_sub <- mutate(toxins_2020_sub, CollectDate = as.Date(CollectDate), 
+                          year = year(CollectDate))
+toxins_2021_sub <- mutate(toxins_2021_sub, CollectDate = as.Date(CollectDate), 
+                         year = year(CollectDate))
+toxins_2022_sub <- mutate(toxins_2022_sub, CollectDate = as.Date(CollectDate), 
+                               year = year(CollectDate))
+toxins_2023_sub <- mutate(toxins_2023_sub, CollectDate = as.Date(CollectDate), 
+                          year = year(CollectDate))
+toxins_2024_sub <- mutate(toxins_2024_sub, CollectDate = as.Date(CollectDate), 
+                          year = year(CollectDate))
+```
+
+```{r}
+# Now combine all tibbles to make one dataframe for all toxins, all years
+toxins_allyears <- rbind(toxins_2019_sub, 
+                         toxins_2020_sub, 
+                         toxins_2021_sub,
+                         toxins_2022_sub,
+                         toxins_2023_sub,
+                         toxins_2024_sub)
+```
+
+# Create toxin-specific tibbles
+```{r}
+# Each of the four toxins with recreational guidance values attached (microcystin, anatoxin-a, saxitoxin, and cylindrospermopsin) for all years
+mic_allyears <- filter(toxins_allyears, Parameter == 'Microcystin')
+ana_allyears <- filter(toxins_allyears, Parameter == 'Anatoxin-a')
+sax_allyears <- filter(toxins_allyears, Parameter == 'Saxitoxin')
+cyl_allyears <- filter(toxins_allyears, Parameter == 'Cylindrospermopsin')
+```
+
+# Create individual tibbles by toxin for each year
+```{r}
+# Microcystin
+#mic_2019 <- filter(toxins_2019_sub, Parameter == 'Microcystin')
+#mic_2020 <- filter(toxins_2020_sub, Parameter == 'Microcystin')
+#mic_2021 <- filter(toxins_2021_sub, Parameter == 'Microcystin')
+#mic_2022 <- filter(toxins_2022_sub, Parameter == 'Microcystin')
+#mic_2023 <- filter(toxins_2023_sub, Parameter == 'Microcystin')
+#mic_2024 <- filter(toxins_2024_sub, Parameter == 'Microcystin')
+```
+
+# Data Visualization
+1. Make 4 facet plots for each toxin with histograms by year showing length of sampling season.
+2. Make 4 plots for each toxin with log scale on y axis
+
+```{r}
+library(esquisse)
+esquisser(mic_allyears, view = "browser")
+```
+
+```{r}
+# Histogram facet plots
+mic_hist <- ggplot(mic_allyears) +
+  aes(x = daymonth) +
+  geom_histogram(stat = "count", color = "cornflowerblue") +
+  facet_wrap(~year) +
+  scale_x_discrete(guide = guide_axis(angle=45))
+  theme_minimal()
+mic_hist
+```
+
+```{r}
+# Create plot for all years 
+mic_alltoxins_plot <- ggplot(mic_2019, aes(x = CollectDate, 
+                                           y = Toxin_Concentration_ppb)) +
+  geom_point() +
+  scale_y_continuous(trans = 'log10')
+mic_alltoxins_plot
+```
+
+# Plots
+```{r}
+mic_allyears_plot <- ggplot(mic_allyears, aes(x = CollectDate, 
+                            y = Toxin_Concentration_ppb)) +
+                    geom_point()
+mic_allyears_plot
+```
+
+
+# Data Analysis
+
+Goal to compare toxin data to climate data (what climate data? surface temperatures for each year?)
+
+```{r}
+
+```
+
+
+# Please include additional sections as desired.
+
+```{r}
+
+```
+
+
+# Versions
+
+Include some information about the version of R and the packages you are using by running sessionInfo().
+
+```{r}
+sessionInfo()
+```
+
+Render your document to an html or pdf using the "Knit" button.
