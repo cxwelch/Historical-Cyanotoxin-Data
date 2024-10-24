@@ -53,17 +53,17 @@ toxins_2024_sub$CollectDate <- mdy(toxins_2024_sub$CollectDate)
 ```{r}
 # Add column with year only to "_alltoxins" tibbles
 toxins_2019_sub <- mutate(toxins_2019_sub, 
-                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+                          monthday = format(as.Date(CollectDate), "%m-%d"))
 toxins_2020_sub <- mutate(toxins_2020_sub, 
-                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+                          monthday = format(as.Date(CollectDate), "%m-%d"))
 toxins_2021_sub <- mutate(toxins_2021_sub, 
-                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+                          monthday = format(as.Date(CollectDate), "%m-%d"))
 toxins_2022_sub <- mutate(toxins_2022_sub, 
-                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+                          monthday = format(as.Date(CollectDate), "%m-%d"))
 toxins_2023_sub <- mutate(toxins_2023_sub, 
-                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+                          monthday = format(as.Date(CollectDate), "%m-%d"))
 toxins_2024_sub <- mutate(toxins_2024_sub, 
-                          daymonth = format(as.Date(CollectDate), "%d-%m"))
+                          monthday = format(as.Date(CollectDate), "%m-%d"))
 ```
 
 ```{r}
@@ -122,33 +122,78 @@ esquisser(mic_allyears, view = "browser")
 ```
 
 ```{r}
-# Histogram facet plots
+# x-axis labels
+xlabs <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+# Histogram facet plot for microcystin
 mic_hist <- ggplot(mic_allyears) +
-  aes(x = daymonth) +
+  aes(x = monthday) +
   geom_histogram(stat = "count", color = "cornflowerblue") +
-  facet_wrap(~year) +
-  scale_x_discrete(guide = guide_axis(angle=45))
-  theme_minimal()
+  scale_x_discrete(guide = guide_axis(angle=45), breaks = 1:12, labels = xlabs) +
+  facet_wrap(~year)
+
 mic_hist
+```
+```{r}
+# Histogram facet plot for anatoxin-a
+ana_hist <- ggplot(ana_allyears) +
+  aes(x = monthday) +
+  geom_histogram(stat = "count", color = "darkolivegreen4") +
+  facet_wrap(~year) +
+  scale_x_discrete(guide = guide_axis(angle=45), breaks = 1:12, labels = 1:12)
+ana_hist
+```
+```{r}
+# Histogram facet plot for saxitoxin
+sax_hist <- ggplot(sax_allyears) +
+  aes(x = monthday) +
+  geom_histogram(stat = "count", color = "brown3") +
+  facet_wrap(~year) +
+  scale_x_discrete(guide = guide_axis(angle=45), breaks = 1:12)
+sax_hist
+
+# Histogram facet plot for cylindrospermopsin 
+cyl_hist <- ggplot(cyl_allyears) +
+  aes(x = monthday) +
+  geom_histogram(stat = "count", color = "azure4") +
+  facet_wrap(~year) +
+  scale_x_discrete(guide = guide_axis(angle=45), breaks = 1:12, labels = 1:12)
+cyl_hist
 ```
 
 ```{r}
+# Need to make "Toxin_Concentration_ppb" numeric values
+mic_allyears <- mic_allyears %>% mutate(
+  Toxin_Concentration_ppb = as.numeric(Toxin_Concentration_ppb))
+
 # Create plot for all years 
-mic_alltoxins_plot <- ggplot(mic_2019, aes(x = CollectDate, 
-                                           y = Toxin_Concentration_ppb)) +
-  geom_point() +
+mic_allyears_plot <- ggplot(mic_allyears, 
+                        aes(x = CollectDate, 
+                            y = Toxin_Concentration_ppb, 
+                            color = year)) +
+  geom_point(alpha = 0.5) +
   scale_y_continuous(trans = 'log10')
-mic_alltoxins_plot
+mic_allyears_plot
 ```
 
 # Plots
 ```{r}
-mic_allyears_plot <- ggplot(mic_allyears, aes(x = CollectDate, 
-                            y = Toxin_Concentration_ppb)) +
-                    geom_point()
-mic_allyears_plot
-```
+# Need to make "Toxin_Concentration_ppb" numeric values
+ana_allyears <- ana_allyears %>% mutate(
+  Toxin_Concentration_ppb = as.numeric(Toxin_Concentration_ppb))
 
+# Create plot for all years 
+ana_allyears_plot <- ggplot(ana_allyears, 
+                        aes(x = CollectDate, 
+                            y = Toxin_Concentration_ppb, 
+                            color = year)) +
+  geom_point(alpha = 0.5) +
+  scale_y_continuous(trans = 'log10')
+ana_allyears_plot
+```
+```{r}
+esquisser(ana_allyears, view = "browser")
+```
 
 # Data Analysis
 
