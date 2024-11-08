@@ -1,0 +1,123 @@
+---
+title: "Toxin_Sampling_History"
+author: "Cecilia Welch"
+date: "2024-11-07"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Using data from NW Toxin Algae database in 2007, this is a look at sampling history by county in an attempt to see which counties have very little data (which may mean they do not have robust sampling programs).
+
+```{r}
+library(tidyverse)
+head(All_toxin_years)
+```
+
+## Load 2018 data (exported from nwtoxicalgae.org/Data.aspx, only included data from 06-26-2018 through 12-31-2018)
+
+```{r}
+# Get rid of extra columns
+All_toxin_years <- All_toxin_years[1:(length(All_toxin_years)-3)]
+```
+
+```{r}
+# Reformat dates
+All_toxin_years$CollectDate <- mdy(All_toxin_years$CollectDate)
+
+# Add in a column for year only
+All_toxin_years$Year <- year(All_toxin_years$CollectDate)
+```
+
+```{r}
+# Need to make sure "Parameters" are all consistent using case_when and drop all NA values
+library(naniar)
+library(dplyr)
+All_toxin_years <- All_toxin_years %>% drop_na(County)
+All_toxin_years <- All_toxin_years %>% mutate(
+  Parameter = case_when(Parameter == "microcystin" ~ "Microcystin",
+                        Parameter == "anatoxin-a" ~ "Anatoxin-a",
+                                TRUE ~ Parameter))
+All_toxin_years <- All_toxin_years %>% mutate(
+  County = case_when(County == "Thurston County" ~ "Thurston",
+                     County == "whatcom" ~ "Whatcom",
+                     TRUE ~ County))
+```
+
+# Start visualizing data
+```{r}
+# Begin data visualization with esquisse
+library(esquisse)
+esquisser(All_toxin_years, view = "browser")
+```
+
+```{r}
+# Show distribution of samples by county (want to know how many counties have smaller programs using sample number as indicator)
+
+ggplot(All_toxin_years) +
+  aes(x = County, y = CollectDate, colour = Parameter) +
+  geom_point(size = 1) +
+  scale_color_manual(values = c(`Anatoxin-a` = "#F8766D",
+                                Cylindrospermopsin = "#5C7280",
+                                Microcystin = "#1D9ABE",
+                                Saxitoxin = "#F5B02C")) +
+  theme(axis.title.x = element_text(size = 10),
+        axis.title.y = element_text(size = 10),
+        axis.text = element_text(size = 5),
+        axis.text.x = element_text(angle = 90L, hjust = 0.95)) +
+  scale_y_date(date_breaks = "1 year", date_labels = "%Y")
+
+```
+```{r}
+# Now look at past 5 years
+All_toxin_sub <- All_toxin_years %>% filter(Year > 2018)
+```
+
+```{r}
+# And plot
+ggplot(All_toxin_sub) +
+  aes(x = County, y = CollectDate, colour = Parameter) +
+  geom_point(size = 1) +
+  scale_color_manual(values = c(`Anatoxin-a` = "#F8766D",
+                                Cylindrospermopsin = "#5C7280",
+                                Microcystin = "#1D9ABE",
+                                Saxitoxin = "#F5B02C")) +
+  theme(axis.title.x = element_text(size = 10),
+        axis.title.y = element_text(size = 10),
+        axis.text = element_text(size = 5),
+        axis.text.x = element_text(angle = 90L, hjust = 0.95)) +
+  scale_y_date(date_breaks = "1 year", date_labels = "%Y")
+
+```
+```{r}
+# Create facet plots for each toxin
+ggplot(All_toxin_years) +
+  aes(x = County, y = CollectDate, colour = Parameter) +
+  geom_point(size = 1) +
+  scale_color_manual(values = c(`Anatoxin-a` = "#F8766D",
+                                Cylindrospermopsin = "#5C7280",
+                                Microcystin = "#1D9ABE",
+                                Saxitoxin = "#F5B02C")) +
+  theme(axis.title.x = element_text(size = 10),
+        axis.title.y = element_text(size = 10),
+        axis.text = element_text(size = 5),
+        axis.text.x = element_text(angle = 90L, hjust = 0.95)) +
+  scale_y_date(date_breaks = "1 year", date_labels = "%Y") +
+  facet_wrap(vars(Parameter))
+```
+```{r}
+# Past 5 years
+ggplot(All_toxin_sub) +
+  aes(x = County, y = CollectDate, colour = Parameter) +
+  geom_point(size = 1) +
+  scale_color_manual(values = c(`Anatoxin-a` = "#F8766D",
+                                Cylindrospermopsin = "#5C7280",
+                                Microcystin = "#1D9ABE",
+                                Saxitoxin = "#F5B02C")) +
+  theme(axis.title.x = element_text(size = 10),
+        axis.title.y = element_text(size = 10),
+        axis.text = element_text(size = 5),
+        axis.text.x = element_text(angle = 90L, hjust = 0.95)) +
+  scale_y_date(date_breaks = "1 year", date_labels = "%Y") +
+  facet_wrap(vars(Parameter))
+```
