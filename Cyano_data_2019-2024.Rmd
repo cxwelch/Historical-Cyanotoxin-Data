@@ -198,25 +198,6 @@ esquisser(ana_allyears, view = "browser")
 # Data Analysis
 
 Goal to compare toxin data to climate data (what climate data? surface temperatures for each year?)
-
-```{r}
-
-```
-
-
-# Please include additional sections as desired.
-
-```{r}
-
-```
-
-
-# Versions
-
-Include some information about the version of R and the packages you are using by running sessionInfo().
-
-```{r}
-sessionInfo()
 ```
 
 Render your document to an html or pdf using the "Knit" button.
